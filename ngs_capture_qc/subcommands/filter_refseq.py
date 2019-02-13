@@ -142,5 +142,5 @@ def action(args):
         sys.exit(1)
 
 
-    writer = csv.DictWriter(args.outfile, fieldnames=fieldnames, delimiter='\t')
+    writer = csv.DictWriter(open(args.outfile,'w'), fieldnames=fieldnames, delimiter='\t')
     writer.writerows(filtered_output)
