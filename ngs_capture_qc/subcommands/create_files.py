@@ -22,7 +22,6 @@ def build_parser(parser):
     parser.add_argument('-p','--picard',action='store_true',help="Create picard formatted file")
     parser.add_argument('-b','--bed', action='store_true', help="Create bed formatted file, bedtools also required")
     parser.add_argument('-g','--refseq_bed', help="UCSC RefSeq gene data in bed format, chrm|start|stop|gene")
-    parser.add_argument('-c','--cadd',action='store_true',help="Create annovar formatted CADD file specific to this capture")
     parser.add_argument('--bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
 
 def write_merged_bed(probes, bedtools, temp_merged_bed):
@@ -74,16 +73,6 @@ def create_picard_bed(probes, probe_basename):
             for line in header:
                 picard_out.write(line)
     probes.to_csv(picard_bed, columns=['chrom','start','stop','strand','annotation'],header=False,index=False,sep='\t', mode='a')
-
-def create_cadd_annovardb():
-    """Create the CADD score file for this assay for Annovar
-    """
-    pass
-
-def create_filtered_refseq():
-    """Create the filtered refseq file
-    """
-    pass
 
 def action(args):
     #Read in the probes
