@@ -3,6 +3,7 @@ import gzip
 import logging
 import shutil
 import sys
+import numpy as np
 from collections import defaultdict
 from intervaltree import Interval, IntervalTree
 
@@ -82,6 +83,26 @@ class Opener(object):
                 mode += 't'
             opener = openers.get(suffix, open)
             return opener(obj, mode=mode, *self.args, **self.kwargs)
+
+def check_probe_format(probes):
+    """Check that the probes are in chrm|start|stop|annotation|strand format.
+    Remove 'chr' if present"""
+    assert len(probes.columns)>=5, "Five columns expected. Please format input file as chrm|start|stop|annotation|strand, without a header"
+    #assert that chrm is in chromosome dictionary (ie, there is no header)
+    if probes.columns[0] not in chromosomes.keys() or probes.iloc[0][0] not in chromosomes.keys():
+        raise ValueError("Column 1 is not an obvious chromosome. Please format input file as chrm|start|stop|annotation|strand, without a header")
+    elif probes.iloc[0][1].dtype != np.int64 or probes.iloc[0][2].dtype != np.int64:
+        raise ValueError("Column 2 and/or 3 is not an obvious start|stop position. Please format input file as chrm|start|stop|annotation|strand, without a header")
+    elif not isinstance(probes.iloc[0][3], str):
+        raise ValueError("Column 4 is not an obvious annotation. Please format input file as chrm|start|stop|annotation|strand, without a header")
+    elif probes.iloc[0][4] not in ['-','+']:
+        raise ValueError("Column 5 is not an obvious strand (-,+). Please format input file as chrm|start|stop|annotation|strand, without a header")
+    #Drop all other columns
+    probes=probes.iloc[:,:5]
+    probes.columns=['chrom','start','stop','annotation','strand']
+    #Drop chr if present
+    probes['chrom']=probes['chrom'].str.replace('chr','')
+    return probes
 
 # Various files and data strctures specify chromosomes as strings
 # encoding ints, like ('1', '2', ..., 'X'), sometimes as ints (1, 2,

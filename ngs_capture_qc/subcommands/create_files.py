@@ -9,7 +9,7 @@ import shutil
 import os
 import pandas as pd
 import numpy as np
-from ngs_capture_qc.utils import chromosomes
+from ngs_capture_qc.utils import chromosomes, check_probe_format
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
@@ -21,29 +21,9 @@ def build_parser(parser):
     parser.add_argument('probefile', help='The probe file from the vendor file')
     parser.add_argument('-p','--picard',action='store_true',help="Create picard formatted file")
     parser.add_argument('-b','--bed', action='store_true', help="Create bed formatted file, bedtools also required")
-    parser.add_argument('-g','--refseq_genes', help="UCSC RefSeq gene data in bed format, chrm|start|stop|gene")
+    parser.add_argument('-g','--refseq_bed', help="UCSC RefSeq gene data in bed format, chrm|start|stop|gene")
     parser.add_argument('-c','--cadd',action='store_true',help="Create annovar formatted CADD file specific to this capture")
     parser.add_argument('--bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
-
-def check_format(probes):
-    """Check that the probes are in chrm|start|stop|annotation|strand format.
-    Remove 'chr' if present"""
-    assert len(probes.columns)>=5, "Five columns expected. Please format input file as chrm|start|stop|annotation|strand, without a header"
-    #assert that chrm is in chromosome dictionary (ie, there is no header)
-    if probes.columns[0] not in chromosomes.keys() or probes.iloc[0][0] not in chromosomes.keys():
-        raise ValueError("Column 1 is not an obvious chromosome. Please format input file as chrm|start|stop|annotation|strand, without a header")
-    elif probes.iloc[0][1].dtype != np.int64 or probes.iloc[0][2].dtype != np.int64:
-        raise ValueError("Column 2 and/or 3 is not an obvious start|stop position. Please format input file as chrm|start|stop|annotation|strand, without a header")
-    elif not isinstance(probes.iloc[0][3], str):
-        raise ValueError("Column 4 is not an obvious annotation. Please format input file as chrm|start|stop|annotation|strand, without a header")
-    elif probes.iloc[0][4] not in ['-','+']:
-        raise ValueError("Column 5 is not an obvious strand (-,+). Please format input file as chrm|start|stop|annotation|strand, without a header")
-    #Drop all other columns
-    probes=probes.iloc[:,:5]
-    probes.columns=['chrom','start','stop','annotation','strand']
-    #Drop chr if present
-    probes['chrom']=probes['chrom'].str.replace('chr','')
-    return probes
 
 def write_merged_bed(probes, bedtools, temp_merged_bed):
     """Given correctly formatted probes, write the merged bed file"""
@@ -60,11 +40,13 @@ def write_annotated_bed(temp_merged_bed, bedtools, refseq, anno_bed):
     annotate = subprocess.Popen(intersect_args, stdout=subprocess.PIPE)
     data = StringIO(annotate.communicate()[0].decode('utf-8'))
     df = pd.read_csv(data, sep='\t', header=None)
+    #Ignore all columns in merged output except the 7 we care about
+    df=df.iloc[:,:7]
     df.columns=['chrom','start','stop','Rchr','Rstart','Rstop','gene']
     df.drop_duplicates(subset=['chrom','start','stop','gene'],inplace=True)
     df.to_csv(anno_bed, columns=['chrom','start','stop','gene'],header=None,index=False, sep='\t')
 
-def create_bed(probes,probe_basename,refseq_genes, bedtools):
+def create_bed(probes,probe_basename,refseq_bed, bedtools):
     """Inital step for new assay, validate probe file and write clean, annotated bed file"""
     #Write temp clean probe file for bedtools usage
     probes_temp=os.path.basename(probe_basename)+'-TEMP.probes'
@@ -76,7 +58,7 @@ def create_bed(probes,probe_basename,refseq_genes, bedtools):
 
     #Write merged, annotated bed file
     anno_bed=os.path.basename(probe_basename)+'-anno.bed'
-    write_annotated_bed(temp_merged_bed, bedtools, refseq_genes, anno_bed)
+    write_annotated_bed(temp_merged_bed, bedtools, refseq_bed, anno_bed)
     
     #Remove temp merged bed file
     os.remove(probes_temp)
@@ -108,7 +90,7 @@ def action(args):
     probes = pd.read_csv(open(args.probefile,'r'), delimiter='\t')
 
     #Assert the probes are in the correct format for processing
-    probes = check_format(probes)
+    probes = check_probe_format(probes)
 
     #setup name for resulting files
     probe_basename=os.path.splitext(os.path.basename(args.probefile))[0]
@@ -116,12 +98,12 @@ def action(args):
     #Now, create files based on CLI arguments
     #Parse probes, write clean bed file
     if args.bed:
-        if args.refseq_genes and args.bedtools:
+        if args.refseq_bed and args.bedtools:
             if args.bedtools.endswith('img'):
                 bedtools='singularity exec --bind {} --pwd {} {}'.format(os.getcwd(), os.getcwd(), args.bedtools)
             else:
                 bedtools=args.bedtools
-            create_bed(probes, probe_basename, args.refseq_genes, bedtools)
+            create_bed(probes, probe_basename, args.refseq_bed, bedtools)
         else:
             raise Exception('ERROR:Creating the bed file requires a refseq gene file and the path/image of bedtools')
 
