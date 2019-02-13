@@ -33,14 +33,20 @@ the original probe file. To run ``cap_qc.py``::
     % ./cap_qc.py -h
 
 The expected order of operations:
-1. ./cap_qc.py filter_refseq 
+1. ./cap_qc.py filter_refseq refseq genes
    - this will validated preferred transcripts and create the filtered refseq file for use in CNV calling
-2. ./cap_qc.py create_files
+
+2. ./cap_qc.py create_files probefile --bed --refseq_genes --bedtools
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
-     - overall_summary (unique bases targeted, coding bases targeted, refseqs with at least 1 base targeted, probes outside of coding)
-     - per refseq summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+
+3. ./cap_qc.py refgene_to_bed refseq refseq.bed
+   - created BED format of refgene, if one isn't available already
+
+4. ./cap_qc.py summarize_assay probes genes refseq.bed outdir
+    - overall_summary (unique bases targeted, coding bases targeted, refseqs with at least 1 base targeted, probes outside of coding)
+    - per refseq summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
 
 Commands are constructed as follows. Every command starts with the
 name of the script, followed by an "action" followed by a series of
