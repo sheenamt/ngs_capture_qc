@@ -1,4 +1,4 @@
-"""Filter a file containing the refGene annotation table, limiting to
+"""Filter a file containing the refgene annotation table, limiting to
 preferred transcripts.
 
 Overlapping genes will result in an error.
@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 
 def build_parser(parser):
-    parser.add_argument('refseq',
+    parser.add_argument('refgene',
                         help='RefSeq table broswer file')
     parser.add_argument('genes', 
                         help='File defining preferred transcripts')
@@ -59,7 +59,6 @@ def read_refgene(file):
     "describe table schema"
 
     """
-
     return csv.DictReader(file, fieldnames=refgene_fields, delimiter='\t')
 
 
@@ -69,7 +68,6 @@ def check_overlapping(features):
     names and positions of overlapping features.
 
     """
-
     features = features[:]
     overlapping = []
     for i in range(len(features)-1):
@@ -78,7 +76,7 @@ def check_overlapping(features):
         if prev_end >= start:
             overlap = ((prev_name, prev_start, prev_end), (name, start, end))
             overlapping.append(overlap)
-            log.warning('overlapping features: ' + pprint.pformat(overlap))
+            raise ValueError('overlapping features: ' + pprint.pformat(overlap))
     return overlapping
 
 Node = namedtuple('Node', 'name start end left right')
@@ -89,23 +87,23 @@ def action(args):
     transcripts['RefSeq']=transcripts['RefSeq'].apply(lambda x: x.split('.')[0])
 
     # read and filter the refgene file
-    refseqs = read_refgene(open(args.refseq, 'r'))
-    fieldnames = refseqs.fieldnames
+    refgenes = read_refgene(open(args.refgene, 'r'))
+    fieldnames = refgenes.fieldnames
 
-    refseqs = [r for r in refseqs
+    refgenes = [r for r in refgenes
                if r['chrom'] in chromosomes and r['name2'] in transcripts['Gene'].values]
 
     #try to match chr string in reference file and input data
     chrm=False
-    if 'chr' in refseqs[0]['chrom']:
+    if 'chr' in refgenes[0]['chrom']:
         chrm = True
 
     # sort by chromosome, transcription start
-    refseqs.sort(key=lambda row: (str(chromosomes[row['chrom']]), str(row['txStart'])))
+    refgenes.sort(key=lambda row: (str(chromosomes[row['chrom']]), str(row['txStart'])))
 
     # group by gene and choose one transcript for each
     filtered_output = []
-    for gene, grp in groupby(refseqs, itemgetter('name2')):
+    for gene, grp in groupby(refgenes, itemgetter('name2')):
         grp = list(grp)
         preferred = transcripts.loc[transcripts['Gene']==gene, 'RefSeq'].item()
         if preferred:
