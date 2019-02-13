@@ -14,9 +14,6 @@ import __init__ as config
 log = logging.getLogger(__name__)
 
 
-assay_testfiles = os.path.join(config.datadir, 'assay_files')
-
-
 class TestCreateFiles(TestBase):
     """
     Test the create files script, which writes files based on probes and 
@@ -38,32 +35,32 @@ class TestCreateFiles(TestBase):
     def testCheckFormat1(self):
         """Check that there is no header"""
         header_probes=pd.DataFrame(data=self.data,columns=['chrm','start','stop','annot','strand'])
-        self.assertRaises(ValueError,create_files.check_format, header_probes)
+        self.assertRaises(ValueError,create_files.check_probe_format, header_probes)
 
     def testCheckFormat2(self):
         """Check that there are 5 columns """
         len_probes=pd.DataFrame(data=[x[:-1] for x in self.data])
-        self.assertRaises(AssertionError,create_files.check_format,len_probes)
+        self.assertRaises(AssertionError,create_files.check_probe_format,len_probes)
 
     def testCheckFormat3(self):
         """Check that the start and stop columns are integers """
 
         start_probes=pd.DataFrame(data=self.break_data(self.data,'bad',1))
-        self.assertRaises(ValueError,create_files.check_format,start_probes)
+        self.assertRaises(ValueError,create_files.check_probe_format,start_probes)
 
         stop_probes=pd.DataFrame(data=self.break_data(self.data,'bad',2))
-        self.assertRaises(ValueError, create_files.check_format,stop_probes)
+        self.assertRaises(ValueError, create_files.check_probe_format,stop_probes)
 
     def testCheckFormat4(self):
         """Check that there is a strand column """
 
         strand_probes=pd.DataFrame(data=self.break_data(self.data,'bad',4))
-        self.assertRaises(ValueError, create_files.check_format,strand_probes)
+        self.assertRaises(ValueError, create_files.check_probe_format,strand_probes)
 
     def testCheckFormat5(self):
         """Check that there is a string of some sort in the annotation column """
 
         annot_probes=pd.DataFrame(data=self.break_data(self.data,'4',4))
-        self.assertRaises(ValueError, create_files.check_format, annot_probes)
+        self.assertRaises(ValueError, create_files.check_probe_format, annot_probes)
 
             
