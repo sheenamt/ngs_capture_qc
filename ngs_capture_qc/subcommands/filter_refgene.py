@@ -24,8 +24,7 @@ def build_parser(parser):
                         help='RefSeq table broswer file')
     parser.add_argument('genes', 
                         help='File defining preferred transcripts')
-    parser.add_argument('-o', '--outfile',
-                        default=sys.stdout, 
+    parser.add_argument('outfile',
                         help='output file')
 refgene_fields = """
 bin
