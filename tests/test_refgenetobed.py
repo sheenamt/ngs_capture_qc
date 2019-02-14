@@ -42,7 +42,7 @@ class TestRefGeneToBed(TestBase):
 
     def testRefGeneToBed(self):
         refgene=os.path.join(config.datadir, 'test.refGene')
-        expected_output=os.path.join(config.datadir, 'expected-test.refGene.bed')
+        expected_output=os.path.join(config.datadir, 'expected.refGene.bed')
         test_output=os.path.join(self.outdir, 'test-output.refgene.bed')
         cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "refgene_to_bed", refgene, test_output]
         subprocess.call(cmd)
