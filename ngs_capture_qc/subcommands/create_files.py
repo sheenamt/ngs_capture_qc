@@ -23,6 +23,7 @@ def build_parser(parser):
     parser.add_argument('-b','--bed', action='store_true', help="Create bed formatted file, bedtools also required")
     parser.add_argument('-g','--refgene_bed', help="UCSC RefGene gene data in bed format, chrm|start|stop|gene")
     parser.add_argument('--bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
+    parser.add_argument('--outdir', required=False, help="Output directory for summary scripts")
 
 def write_merged_bed(probes, bedtools, temp_merged_bed):
     """Given correctly formatted probes, write the merged bed file"""
@@ -48,17 +49,17 @@ def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
 def create_bed(probes,output_basename,refgene_bed, bedtools):
     """Inital step for new assay, validate probe file and write clean, annotated bed file"""
     #Write temp clean probe file for bedtools usage
-    probes_temp=os.path.basename(output_basename)+'-TEMP.probes'
+    probes_temp=output_basename+'-TEMP.probes'
     probes.to_csv(probes_temp, columns=['chrom','start','stop'],header=False,sep='\t', index=False)
 
     #Write temp merged bed file
-    temp_merged_bed=os.path.basename(output_basename)+'-TEMP.bed'
+    temp_merged_bed=output_basename+'-TEMP.bed'
     write_merged_bed(probes_temp, bedtools, temp_merged_bed)
 
     #Write merged, annotated bed file
-    anno_bed=os.path.basename(output_basename)+'-anno.bed'
+    anno_bed=output_basename+'.anno.bed'
     write_annotated_bed(temp_merged_bed, bedtools, refgene_bed, anno_bed)
-    
+
     #Remove temp merged bed file
     os.remove(probes_temp)
     os.remove(temp_merged_bed)
@@ -83,7 +84,7 @@ def action(args):
 
     #setup name for resulting files
     probe_basename=os.path.splitext(os.path.basename(args.probefile))[0]
-    output_basename=os.path.join(os.path(args.profile),probe_basename)
+    output_basename=os.path.join(os.path.join(args.outdir,probe_basename))
 
     #Now, create files based on CLI arguments
     #Parse probes, write clean bed file
