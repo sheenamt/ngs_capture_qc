@@ -20,29 +20,23 @@ log = logging.getLogger(__name__)
 
 
 def build_parser(parser):
-    parser.add_argument('refgene',
-                        help='RefSeq table broswer file')
+    parser.add_argument('refgene_bed',
+                        help='RefSeq table broswer file, in bed format. Use refgene_to_bed to create')
     parser.add_argument('genes', 
                         help='File defining preferred transcripts')
     parser.add_argument('outfile',
                         help='output file')
+
 refgene_fields = """
-bin
-name
 chrom
-strand
 txStart
 txEnd
-cdsStart
-cdsEnd
+name
+refgene
 exonCount
+exonSizes
 exonStarts
 exonEnds
-score
-name2
-cdsStartStat
-cdsEndStat
-exonFrames
 """.split()
 
 def read_refgene(file):
@@ -56,9 +50,11 @@ def read_refgene(file):
     To view the schema, go to https://genome.ucsc.edu/cgi-bin/hgTables
     --> choose track "refSeq Genes" --> choose table "refGene" -->
     "describe table schema"
-
+    
+    Skip the header (which starts with #bin) if present
     """
-    return csv.DictReader(file, fieldnames=refgene_fields, delimiter='\t')
+    
+    return csv.DictReader(filter(lambda row: row[0]!='#',file), fieldnames=refgene_fields, delimiter='\t')
 
 
 def check_overlapping(features):
@@ -83,37 +79,33 @@ Node = namedtuple('Node', 'name start end left right')
 def action(args):
     #Parse preferred transcripts, write coverage info
     transcripts=pd.read_csv(open(args.genes, 'r'), delimiter='\t')
+    transcripts.columns=['Gene','RefSeq']
     transcripts['RefSeq']=transcripts['RefSeq'].apply(lambda x: x.split('.')[0])
 
     # read and filter the refgene file
-    refgenes = read_refgene(open(args.refgene, 'r'))
+    refgenes = read_refgene(open(args.refgene_bed, 'r'))
     fieldnames = refgenes.fieldnames
-
+    
     refgenes = [r for r in refgenes
-               if r['chrom'] in chromosomes and r['name2'] in transcripts['Gene'].values]
-
-    #try to match chr string in reference file and input data
-    chrm=False
-    if 'chr' in refgenes[0]['chrom']:
-        chrm = True
+                if r['chrom'] in chromosomes and r['name'] in transcripts['Gene'].values]
 
     # sort by chromosome, transcription start
     refgenes.sort(key=lambda row: (str(chromosomes[row['chrom']]), str(row['txStart'])))
 
     # group by gene and choose one transcript for each
     filtered_output = []
-    for gene, grp in groupby(refgenes, itemgetter('name2')):
+    for gene, grp in groupby(refgenes, itemgetter('name')):
         grp = list(grp)
         preferred = transcripts.loc[transcripts['Gene']==gene, 'RefSeq'].item()
         if preferred:
-            keep = [r for r in grp if r['name'] in preferred]
+            keep = [r for r in grp if r['refgene'] in preferred]
             if not keep:
                 log.error('Error: %s has a preferred transcript of %s but only %s was found' %
-                          (gene, preferred, ','.join(r['name'] for r in grp)))
+                          (gene, preferred, ','.join(r['refgene'] for r in grp)))
                 sys.exit(1)
             elif len(keep) > 1:
                 log.warning('{} has more than one preferred transcript; using {}'.format(
-                    gene, keep[0]['name']))
+                    gene, keep[0]['refgene']))
         else:
             log.warning('no preferred transcript for {}'.format(gene))
             keep = grp[:1]
@@ -121,7 +113,7 @@ def action(args):
         filtered_output.append(keep[0])
 
     # all transcripts are found among preferred transcripts
-    assert [transcripts[transcripts['RefSeq'].astype(str).str.contains(k['name'])] for k in filtered_output]
+    assert [transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])] for k in filtered_output]
 
     # Check for overlapping genes and exit with an error if any are
     # found.
@@ -129,7 +121,7 @@ def action(args):
     rows = sorted(filtered_output, key=itemgetter('chrom'))
     for chrom, grp in groupby(rows, key=itemgetter('chrom')):
         grp = sorted(
-            [(row['name2'], int(row['txStart']), int(row['txEnd'])) for row in grp],
+            [(row['name'], int(row['txStart']), int(row['txEnd'])) for row in grp],
             key=itemgetter(1, 2)
         )
         overlapping.extend(check_overlapping(grp))
