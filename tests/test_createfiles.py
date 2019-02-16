@@ -8,7 +8,7 @@ import logging
 import os
 import pandas as pd
 from ngs_capture_qc.subcommands import create_files
-
+from ngs_capture_qc.utils import check_probe_format
 from __init__ import TestBase
 import __init__ as config
 log = logging.getLogger(__name__)
@@ -31,16 +31,20 @@ class TestCreateFiles(TestBase):
         self.probe_file=os.path.join(testfiles,'test.probes')
         self.probes_df = None
         self.probes_temp = None
-        self.setupTempProbes()
+        self.testCheckProbeFormat()
 
-    def setupTempProbes(self):
+    def testCheckProbeFormat(self):
+        """Test probe check and creation of temp probe file"""
         pf=open(self.probe_file,'r')
-        probes = pd.read_csv(pf, delimiter='\t')
-        self.probes_df = create_files.check_probe_format(probes)
+        probes = pd.read_csv(pf, delimiter='\t', header=None)
+        probes_df = check_probe_format(probes)
         self.probes_temp=os.path.join(self.outdir,'testoutput-TEMP.probes')
-        self.probes_df.to_csv(self.probes_temp, columns=['chrom','start','stop'],header=False,sep='\t', index=False)
+        probes_df.to_csv(self.probes_temp, columns=['chrom','start','stop'],header=False,sep='\t', index=False)
         pf.close()
-
+        self.probes_df = probes_df
+        expected_output=os.path.join(testfiles,'expected-TEMP.probes')
+        self.assertTrue(filecmp.cmp(expected_output, os.path.join(self.outdir, 'testoutput-TEMP.probes')))
+        
     def break_data(self,data,string_to_break,index):
         self.new_data=[]
         for x in data:
