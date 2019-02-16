@@ -24,10 +24,10 @@ class TestFilterRefGene(TestBase):
 
     def testReadRefGene(self):
         """Test the mapping of field headers to file"""
-        refgene=open(os.path.join(config.datadir,'test.refGene'),'r')
+        refgene=open(os.path.join(config.datadir,'test.refGene.bed'),'r')
         data=filter_refgene.read_refgene(refgene)
-        test_data=[x for x in data if x['name2']=='MEGF6'][0]
-        expected_data=dict([('bin', '76'), ('name', 'NM_001409'), ('chrom', '1'), ('strand', '-'), ('txStart', '3404505'), ('txEnd', '3528059'), ('cdsStart', '3407091'), ('cdsEnd', '3527832'), ('exonCount', '37'), ('exonStarts', '3404505,3407475,3409202,3410334,3410559,3410934,3411176,3412453,3413218,3413551,3413796,3414934,3415261,3415701,3416151,3416359,3417196,3417529,3417740,3418359,3421771,3421985,3422671,3424358,3425121,3425638,3426433,3427346,3428113,3428569,3431113,3431965,3440687,3496388,3511901,3519029,3527701,'), ('exonEnds', '3407153,3407523,3409331,3410463,3410688,3411063,3411305,3412582,3413347,3413683,3413925,3415063,3415390,3415830,3416280,3416488,3417328,3417658,3417872,3418485,3421906,3422120,3422800,3424487,3425253,3425809,3426556,3427466,3428251,3428692,3431236,3432091,3440810,3496493,3512011,3519164,3528059,'), ('score', '0'), ('name2', 'MEGF6'), ('cdsStartStat', 'cmpl'), ('cdsEndStat', 'cmpl'), ('exonFrames', '1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,0,')])
+        test_data=[x for x in data if x['name']=='FOXA1'][0]
+        expected_data=dict([('chrom', '14'), ('txStart', '38058756'), ('txEnd', '38064325'), ('name', 'FOXA1'), ('refgene', 'NM_004496'), ('exonCount', '2'), ('exonSizes', '3160,220'), ('exonStarts', '38058756,38064105'), ('exonEnds', '38061916,38064325')])
         refgene.close()
         self.assertDictEqual(test_data, expected_data)
         
@@ -41,8 +41,8 @@ class TestFilterRefGene(TestBase):
         self.assertRaises(ValueError, filter_refgene.check_overlapping, feature2)
 
     def testFilterRefGene(self):
-        refgene=os.path.join(config.datadir, 'test.refGene')
-        genes=os.path.join(config.datadir, 'test.genes')
+        refgene=os.path.join(config.datadir, 'test.refGene.bed')
+        genes=os.path.join(config.datadir, 'test.genes_for_filter')
         test_output=os.path.join(self.outdir, 'test-output-filtered.refgene')
 
         filtered_output=os.path.join(config.datadir, 'expected-filtered.refGene')
