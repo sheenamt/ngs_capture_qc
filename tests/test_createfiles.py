@@ -106,7 +106,7 @@ class TestCreateFiles(TestBase):
 
     def testCreateFiles(self):
         #Test running of whole script
-        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "create_files", self.probe_file, "--refgene_bed", self.refgene_bed, "--outdir", self.outdir, "--bedtools", self.bedtools_image, "--picard", "--bed"]
+        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "create_files", self.probe_file,  self.refgene_bed,self.bedtools_image, "--outdir", self.outdir]
         subprocess.call(cmd)
         
         expected_picard=os.path.join(testfiles,'expected.Picard.bed')

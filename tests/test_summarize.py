@@ -42,7 +42,7 @@ class TestSummarizeAssay(TestBase):
         pref_trans = os.path.join(testfiles, 'test.genes_for_summarize')
         refgene = os.path.join(testfiles, 'test.refGene.bed')
         bedtools='/mnt/disk2/com/container-images/bedtools-2.26.img'
-        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "summarize_assay", "--bed", self.assay, "--genes", pref_trans, "--refgene_bed", refgene, "--outdir", self.outdir, "--bedtools", bedtools]
+        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "summarize_assay", self.assay, pref_trans, refgene, bedtools,"--outdir", self.outdir]
         subprocess.call(cmd)
         
         #files made in this include "overall_summary.txt", "per_refgene_summary.txt", "merged_probes.bed"
