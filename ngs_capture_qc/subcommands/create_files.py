@@ -1,5 +1,6 @@
 """
 Script to create specifically formatted files from the original probes file
+Picard and merged,annotated BED file
 """
 
 import subprocess
@@ -19,10 +20,8 @@ log = logging.getLogger(__name__)
 
 def build_parser(parser):
     parser.add_argument('probefile', help='The probe file from the vendor file')
-    parser.add_argument('-p','--picard',action='store_true',help="Create picard formatted file")
-    parser.add_argument('-b','--bed', action='store_true', help="Create bed formatted file, bedtools also required")
-    parser.add_argument('-g','--refgene_bed', help="UCSC RefGene gene data in bed format, chrm|start|stop|gene")
-    parser.add_argument('--bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
+    parser.add_argument('refgene_bed', help="UCSC RefGene gene data in bed format, chrm|start|stop|gene")
+    parser.add_argument('bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
     parser.add_argument('--outdir', required=False, help="Output directory for summary scripts")
 
 def write_merged_bed(probes, bedtools, temp_merged_bed):
@@ -89,16 +88,11 @@ def action(args):
 
     #Now, create files based on CLI arguments
     #Parse probes, write clean bed file
-    if args.bed:
-        if args.refgene_bed and args.bedtools:
-            if args.bedtools.endswith('img'):
-                bedtools='singularity exec --bind {} --pwd {} {}'.format(os.getcwd(), os.getcwd(), args.bedtools)
-            else:
-                bedtools=args.bedtools
-            create_bed(probes, output_basename, args.refgene_bed, bedtools)
-        else:
-            raise Exception('ERROR:Creating the bed file requires a refgene gene file and the path/image of bedtools')
+    if args.bedtools.endswith('img'):
+        bedtools='singularity exec --bind {} --pwd {} {}'.format(os.getcwd(), os.getcwd(), args.bedtools)
+    else:
+        bedtools=args.bedtools
+    create_bed(probes, output_basename, args.refgene_bed, bedtools)
 
     #Parse probes, write picard file
-    if args.picard:
-        create_picard_bed(probes, output_basename)
+    create_picard_bed(probes, output_basename)
