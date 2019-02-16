@@ -21,10 +21,10 @@ else:
 log = logging.getLogger(__name__)
 
 def build_parser(parser):
-    parser.add_argument('--bed', required=True, help="Assay Reference bed file, sorted, with ^M removed from end of lines")
-    parser.add_argument('--genes', required=True, help="Gene, RefSeq for assay")
-    parser.add_argument('--refgene_bed', help="UCSC Refgene data in bed format")
-    parser.add_argument('--bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
+    parser.add_argument('bed',  help="Assay Reference bed file, sorted, with ^M removed from end of lines")
+    parser.add_argument('genes', help="Gene, RefSeq for assay")
+    parser.add_argument('refgene_bed', help="UCSC Refgene data in bed format")
+    parser.add_argument('bedtools',help='Path to bedtools, accepts binary or singularity image')
     parser.add_argument('--outdir', required=False, help="Output directory for summary scripts")
 
 class exonTracker:
