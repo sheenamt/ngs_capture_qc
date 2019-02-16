@@ -33,20 +33,22 @@ the original probe file. To run ``cap_qc.py``::
     % ./cap_qc.py -h
 
 The expected order of operations:
-1. ./cap_qc.py filter_refseq refseq genes
-   - this will validated preferred transcripts and create the filtered refseq file for use in CNV calling
+3. ./cap_qc.py refgene_to_bed refgene refgene.bed
+   - created BED format of refgene, if one isn't available already
 
-2. ./cap_qc.py create_files probefile --bed --refseq_genes --bedtools
+filter_refgene, create_files and summarize_assay expect refgene in bed format. 
+
+2. ./cap_qc.py filter_refgene refgene genes
+   - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
+
+3. ./cap_qc.py create_files probefile --bed --refgene_genes --bedtools
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
 
-3. ./cap_qc.py refgene_to_bed refseq refseq.bed
-   - created BED format of refgene, if one isn't available already
-
-4. ./cap_qc.py summarize_assay probes genes refseq.bed outdir
-    - overall_summary (unique bases targeted, coding bases targeted, refseqs with at least 1 base targeted, probes outside of coding)
-    - per refseq summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+4. ./cap_qc.py summarize_assay probes genes refgene.bed outdir
+    - overall_summary (unique bases targeted, coding bases targeted, refgenes with at least 1 base targeted, probes outside of coding)
+    - per refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
 
 Commands are constructed as follows. Every command starts with the
 name of the script, followed by an "action" followed by a series of
@@ -57,16 +59,16 @@ script and individual actions using the ``-h`` or ``--help`` options::
 
     % cap_qc.py -h
     usage: cap_qc.py [-h] [-V] [-v] [-q]
-    {help,create_files,filter_refseq,summarize_assay} ...
+    {help,create_files,filter_refgene,summarize_assay} ...
 
     Utilities for the ngs_capture_qc scripts
 
     positional arguments:
-    {help,create_files,filter_refseq,summarize_assay}
+    {help,create_files,filter_refgene,summarize_assay}
     help                Detailed help for actions using `help <action>`
     create_files        Script to create specifically formatted files from the
                         original probes file
-    filter_refseq       Filter a file containing the refGene annotation table,
+    filter_refgene       Filter a file containing the refGene annotation table,
                         limiting to
     summarize_assay     Given probe reference file, list of preferred
                         transcripts and refgene.bed,
