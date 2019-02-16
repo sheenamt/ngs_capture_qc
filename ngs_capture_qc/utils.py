@@ -89,14 +89,15 @@ def check_probe_format(probes):
     Remove 'chr' if present"""
     assert len(probes.columns)>=5, "Five columns expected. Please format input file as chrm|start|stop|annotation|strand, without a header"
     #assert that chrm is in chromosome dictionary (ie, there is no header)
-    if probes.columns[0] not in chromosomes.keys() or probes.iloc[0][0] not in chromosomes.keys():
+    if probes.iloc[0][0] not in chromosomes.keys():
         raise ValueError("Column 1 is not an obvious chromosome. Please format input file as chrm|start|stop|annotation|strand, without a header")
-    elif probes.iloc[0][1].dtype != np.int64 or probes.iloc[0][2].dtype != np.int64:
-        raise ValueError("Column 2 and/or 3 is not an obvious start|stop position. Please format input file as chrm|start|stop|annotation|strand, without a header")
     elif not isinstance(probes.iloc[0][3], str):
         raise ValueError("Column 4 is not an obvious annotation. Please format input file as chrm|start|stop|annotation|strand, without a header")
     elif probes.iloc[0][4] not in ['-','+']:
         raise ValueError("Column 5 is not an obvious strand (-,+). Please format input file as chrm|start|stop|annotation|strand, without a header")
+    elif isinstance(probes.iloc[0][1],str) or isinstance(probes.iloc[0][2],str) :
+        raise ValueError("Column 2 and/or 3 is not an obvious start|stop position. Please format input file as chrm|start|stop|annotation|strand, without a header")
+
     #Drop all other columns
     probes=probes.iloc[:,:5]
     probes.columns=['chrom','start','stop','annotation','strand']
