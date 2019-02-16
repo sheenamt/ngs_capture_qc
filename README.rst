@@ -33,20 +33,20 @@ the original probe file. To run ``cap_qc.py``::
     % ./cap_qc.py -h
 
 The expected order of operations:
-3. ./cap_qc.py refgene_to_bed refgene refgene.bed
+1. ./cap_qc.py refgene_to_bed [-h] refgene output
    - created BED format of refgene, if one isn't available already
 
 filter_refgene, create_files and summarize_assay expect refgene in bed format. 
 
-2. ./cap_qc.py filter_refgene refgene genes
+2. ./cap_qc.py filter_refgene [-h] refgene_bed genes outfile
    - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
 
-3. ./cap_qc.py create_files probefile --bed --refgene_genes --bedtools
+3. ./cap_qc.py cap_qc.py create_files [-h] [--outdir OUTDIR] probefile refgene_bed bedtools
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
 
-4. ./cap_qc.py summarize_assay probes genes refgene.bed outdir
+4. ./cap_qc.py summarize_assay [-h] [--outdir OUTDIR] bed genes refgene_bed bedtools
     - overall_summary (unique bases targeted, coding bases targeted, refgenes with at least 1 base targeted, probes outside of coding)
     - per refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
 
@@ -59,17 +59,20 @@ script and individual actions using the ``-h`` or ``--help`` options::
 
     % cap_qc.py -h
     usage: cap_qc.py [-h] [-V] [-v] [-q]
-    {help,create_files,filter_refgene,summarize_assay} ...
+    {help,create_files,filter_refgene,refgene_to_bed,summarize_assay}
+    ...
 
     Utilities for the ngs_capture_qc scripts
 
     positional arguments:
-    {help,create_files,filter_refgene,summarize_assay}
+    {help,create_files,filter_refgene,refgene_to_bed,summarize_assay}
     help                Detailed help for actions using `help <action>`
     create_files        Script to create specifically formatted files from the
                         original probes file
-    filter_refgene       Filter a file containing the refGene annotation table,
+    filter_refgene      Filter a file containing the refgene annotation table,
                         limiting to
+    refgene_to_bed      Convert UCSC refgene.txt files to BED format, for use
+                        in summarize_assay script
     summarize_assay     Given probe reference file, list of preferred
                         transcripts and refgene.bed,
 
@@ -94,26 +97,15 @@ unit tests
 Unit tests are implemented using the ``unittest`` module in the Python
 standard library. The ``tests`` subdirectory is itself a Python
 package that imports the local version (ie, the version in the project
-directory, not the version installed to the system) of the ``munge``
+directory, not the version installed to the system) of the ``cap_qc``
 package. All unit tests can be run like this::
 
      % ./testall
-    ........................
-    ----------------------------------------------------------------------
-    Ran 7 tests in 0.155s
-
-    OK
-
-A single unit test can be run by referring to a specific module,
-class, or method within the ``tests`` package using dot notation::
-
-    % ./testone tests.test_utils
-    .
-    ----------------------------------------------------------------------
-    Ran 1 test in 0.004s
-
-    OK
-
+     ...................
+     ----------------------------------------------------------------------
+     Ran 19 tests in 4.624s
+     
+     OK
 
 
 license
