@@ -36,7 +36,7 @@ def write_merged_bed(probes, bedtools, temp_merged_bed):
 def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     """Given merged bed file, replacing the annotation with gene names"""
     #Next, annotate this file
-    intersect_args = [x for x in bedtools.split(' ')]+['bedtools', 'intersect', '-a', temp_merged_bed, '-b', refgene, '-wa', '-wb'] 
+    intersect_args = [x for x in bedtools.split(' ')]+['bedtools', 'intersect', '-a', temp_merged_bed, '-b', refgene, '-loj'] 
     annotate = subprocess.Popen(intersect_args, stdout=subprocess.PIPE)
     data = StringIO(annotate.communicate()[0].decode('utf-8'))
     df = pd.read_csv(data, sep='\t', header=None)
@@ -44,6 +44,7 @@ def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     df=df.iloc[:,:7]
     df.columns=['chrom','start','stop','Rchr','Rstart','Rstop','gene']
     df.drop_duplicates(subset=['chrom','start','stop','gene'],inplace=True)
+    df.replace(to_replace=r'^\.$', value='intergenic', regex=True, inplace=True)
     df.to_csv(anno_bed, columns=['chrom','start','stop','gene'],header=None,index=False, sep='\t')
 
 def create_bed(probes,output_basename,refgene_bed, bedtools):
@@ -77,11 +78,11 @@ def create_picard_bed(probes, output_basename):
 
 def action(args):
     #Read in the probes
-    probes = pd.read_csv(open(args.probefile,'r'), delimiter='\t')
+    probes = pd.read_csv(open(args.probefile,'r'), delimiter='\t', header=None)
 
     #Assert the probes are in the correct format for processing
     probes = check_probe_format(probes)
-
+    
     #setup name for resulting files
     probe_basename=os.path.splitext(os.path.basename(args.probefile))[0]
     output_basename=os.path.join(os.path.join(args.outdir,probe_basename))
