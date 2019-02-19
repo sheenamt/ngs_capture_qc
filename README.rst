@@ -20,7 +20,7 @@ installation
 Clone the project from the git repository::
 
     cd ~/src
-    git clone git@github.com:sheenams/ngs_capture_qc.git
+    git clone git@gitlab.labmed.uw.edu:sheenams/ngs_capture_qc.git
     cd ngs_capture_qc
 
 
@@ -33,22 +33,29 @@ the original probe file. To run ``cap_qc.py``::
     % ./cap_qc.py -h
 
 The expected order of operations:
-1. ./cap_qc.py refgene_to_bed [-h] refgene output
-   - created BED format of refgene, if one isn't available already
 
-filter_refgene, create_files and summarize_assay expect refgene in bed format. 
+1. Create BED format of refgene, if one isn't available already
+    
+    ./cap_qc.py refgene_to_bed [-h] refgene output
+ 
 
-2. ./cap_qc.py filter_refgene [-h] refgene_bed genes outfile
-   - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
+NOTE: filter_refgene, create_files and summarize_assay expect refgene in bed format. 
 
-3. ./cap_qc.py cap_qc.py create_files [-h] [--outdir OUTDIR] probefile refgene_bed bedtools
-   - creates the following files:
-     - clean bed (probes merged, deduplicated and annotated)
-     - picard bed (probes in format required by Picard)
+2. Validate preferred transcripts and create the filtered refgene file for use in CNV calling
 
-4. ./cap_qc.py summarize_assay [-h] [--outdir OUTDIR] bed genes refgene_bed bedtools
-    - overall_summary (unique bases targeted, coding bases targeted, refgenes with at least 1 base targeted, probes outside of coding)
-    - per refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+    ./cap_qc.py filter_refgene [-h] refgene_bed genes outfile
+ 
+
+3. Create clean bed (probes merged, deduplicated and annotated) and picard bed (probes in format required by Picard)
+
+    ./cap_qc.py cap_qc.py create_files [-h] [--outdir OUTDIR] probefile refgene_bed bedtools
+      
+
+4. Summarize capture coverage, including overall summary (unique bases targeted, coding bases targeted, refgenes with at least 1 base targeted, probes outside of coding) and
+per refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+
+    ./cap_qc.py summarize_assay [-h] [--outdir OUTDIR] bed genes refgene_bed bedtools
+
 
 Commands are constructed as follows. Every command starts with the
 name of the script, followed by an "action" followed by a series of
@@ -82,14 +89,6 @@ script and individual actions using the ``-h`` or ``--help`` options::
     -v, --verbose         Increase verbosity of screen output (eg, -v is
                         verbose, -vv more so)
     -q, --quiet           Suppress output
-
-versions
-========
-
-We use abbrevited git sha hashes to identify the software version::
-
-    % ./cap_qc.py -V
-    0309.004ecac
 
 unit tests
 ==========
