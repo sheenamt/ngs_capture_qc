@@ -4,54 +4,41 @@ Convert UCSC refgene.txt files to BED format, for use in summarize_assay script
  
 import os
 import sys 
+import csv
+from operator import itemgetter
+
+import pandas
+from natsort import natsorted
+from ngs_capture_qc.utils import chromosomes
  
 def build_parser(parser):
     parser.add_argument('refgene', help='UCSC table browser download')
-    parser.add_argument('output', help='Output file', default = sys.stdout)
+    parser.add_argument('outfile', help='Output file', default = sys.stdout)
 
  
-def get_int_list(l):
-    return [int(i) for i in l.strip(',').split(',')]
- 
-def get_string_list(a):
-    return ','.join([str(i) for i in a])
- 
-def bed_key(d):
-    return([d['chrom'], int(d['chromStart']), int(d['chromEnd'])])
-
 def action(args):
-    genes = {}
-    for line in open(args.refgene, 'r'):
-        ls = line.strip().split('\t')
-        if len(ls)<16:
-            sys.exit("File expected to have the following columns: 'bin', 'name', 'chrom', 'strand', 'txStart', 'txEnd', 'cdsStart', 'cdsEnd', 'exonCount', 'exonStarts', 'exonEnds', 'score', 'name2', 'cdsStartStat', 'cdsEndStat', 'exonFrames'")
-        if 'bin' in ls[0]:
-            continue
-        starts =  get_int_list(ls[9])
-        stops = get_int_list(ls[10])
-        lengths = get_string_list([stop-start for stop,start in zip(stops, starts)])        
-        relstarts = get_string_list(starts) #[start - int(ls[4]) for start in starts])
-        relends = get_string_list(stops) #[start - int(ls[4]) for start in starts])
-        # For format see http://genome.ucsc.edu/FAQ/FAQformat.html#format1
-        features = ['chrom','chromStart','chromEnd','name', 'refgene','exonCount','exonSizes','exonStarts','exonEnds']
-        gene_entry = dict([('chrom', ls[2].strip('chr')),
-                           ('chromStart', ls[4]),
-                           ('chromEnd', ls[5]),
-                           ('name', ls[12]),
-                           ('refgene', ls[1]),
-                           ('exonCount', ls[8]),
-                           ('exonSizes', lengths),
-                           ('exonStarts', relstarts),
-                           ('exonEnds', relends)])
-        refgene = ls[1]
-        
-        # Ensure that each refgene is only in the table once
-        if (refgene not in genes 
-            and 'NM' in refgene):
-            genes[refgene] = gene_entry
-
-    output=open(args.output,'w')
-    for gene in sorted(genes.values(), key=bed_key):
-        output.write('\t'.join([str(gene[f]) for f in features]) + '\n')
-    output.close()
-
+    refgene_fields = """
+    bin
+    name
+    chrom
+    strand
+    txStart
+    txEnd
+    cdsStart
+    cdsEnd
+    exonCount
+    exonStarts
+    exonEnds
+    score
+    name2
+    cdsStartStat
+    cdsEndStat
+    exonFrames
+    """.split()
+    #Skip the header lines, read in only the columns we need because some unnecessary columns can be millions of characters long
+    reader = csv.DictReader(filter(lambda row: row[0]!='#',open(args.refgene,'r')), delimiter='\t', fieldnames=refgene_fields)
+    out=[x for x in reader if x['chrom'] in chromosomes]
+    sorted_out = natsorted(out, key=itemgetter('chrom'))
+    headers = ['chrom','txStart','txEnd','name2','name','strand','exonCount','exonStarts','exonEnds']
+    writer = csv.DictWriter(open(args.outfile,'w'), extrasaction='ignore',fieldnames=headers, delimiter='\t')
+    writer.writerows(sorted_out)
