@@ -66,28 +66,28 @@ def action(args):
     refgenes = {}
     genes = {}
 
-    refgene_header = ['chrom','chromStart','chromEnd','name', 'refgene','exonCount','exonSizes','exonStarts','exonEnds'] 
-    probes_header = ['chrom', 'chromStart', 'chromEnd' ]
+    refgene_header = ['chrom','chromStart','chromEnd','name', 'refgene','strand','exonCount','exonStarts','exonEnds'] 
+    probes_header = ['chrom', 'chromStart', 'chromEnd']
     genes_header = ['Gene', 'RefSeq']
     
     # 1) Read refGene.txt into the refgenes dictionary
     for line in csv.DictReader(open(args.refgene_bed, 'r'), delimiter='\t', fieldnames=refgene_header):
-        refgene = line['refgene']
+        refgene = line['refgene'].split('.')[0]
         name = line['name']
         # Dictionary-ize refgene.bed
         # Insert unseen refgenes into the dictionary; 
         # We asume that refgene only has ONE line per refgene
-        exonStarts=[x for x in line['exonStarts'].split(',')]
-        exonEnds=[x for x in line['exonEnds'].split(',')]
-        if refgene not in refgenes:
+        exonStarts=list(filter(None,[x for x in line['exonStarts'].split(',')]))
+        exonEnds=list(filter(None,[x for x in line['exonEnds'].split(',')]))
+        if refgene not in refgenes and 'NM_' in refgene:
             refgenes[refgene] = dict( [('name', name),
-                                     ('refgene', line['refgene']),
-                                     ('chrom', line['chrom'].strip('chr')),
-                                     ('chromStart', int(line['chromStart'])),
-                                     ('chromEnd', int(line['chromEnd'])),
-                                     ('exonTracker', exonTracker(exonStarts, exonEnds)),
-                                     ('bases_covered', 0)])
-            
+                                       ('refgene', refgene),
+                                       ('chrom', line['chrom'].strip('chr')),
+                                       ('chromStart', int(line['chromStart'])),
+                                       ('chromEnd', int(line['chromEnd'])),
+                                       ('exonTracker', exonTracker(exonStarts, exonEnds)),
+                                       ('bases_covered', 0)])
+
             #Sanity checks
             assert(len(exonStarts) == len(exonEnds))
             for start,end in zip(exonStarts, exonEnds):
@@ -95,8 +95,8 @@ def action(args):
                 assert(int(line['chromStart']) <= int(start) and int(start) < int(line['chromEnd']))
                 assert(int(line['chromStart']) < int(end) and int(end) <= int(line['chromEnd']))
         else:
-            sys.stderr.write("RefSeq {} is listed twice in refGene!".format(line['refgene']))
-
+            pass
+            #sys.stderr.write("RefSeq {} is listed twice in refGene!".format(line['refgene']))
     # 2) Using bedtools, calculate how many bases are actually covered for each gene
     intersection=os.path.join(out,'intersect_probes_refgene.txt')
     write_intersect=open(intersection, 'w')
@@ -108,12 +108,14 @@ def action(args):
     # Note: Communicate returns (stdoutdata, stderrdata), stdout is a giant string, not an iterable
     # Also, the last line is just a newline, which must be skipped
     for line in open(intersection):
-        ls = line.split('\t')
+        ls = line.strip('\n').split('\t')
         #Find the NM_ column, can be different depending on the input file
         indices = [i for i, s in enumerate(ls) if 'NM_' in s.upper()]
         if len(indices)>1:
             sys.stderr.write("Refseq {} is listed twice in refGene!".format(line['refgene']))
-        refgene = ls[indices[0]]          # We pick out the refgene of the gene from refGene that was matched
+        elif len(indices)<1:
+            sys.stderr.write(line)
+        refgene = ls[indices[0]].split('.')[0]          # We pick out the refgene of the gene from refGene that was matched
         overlap = int(ls[-1]) # The '-wo' switch from intersect_args put the amount of overlap here
         refgenes[refgene]['bases_covered'] += overlap
         refgenes[refgene]['exonTracker'].insert(int(ls[1]), int(ls[2]))
@@ -134,7 +136,6 @@ def action(args):
         try:
             #assert that the NM provided in the Pref_Trans is for the Gene they requested
             if refgenes[transcript]['name']!=gene['Gene']:
-                outfields=wrong_ref(gene)
                 outfields = dict([('gene', gene['Gene']), 
                                   ('refgene', gene['RefSeq']),
                                   ('total_bases_targeted', 'Incorrect RefSeq for this Gene'),
@@ -150,7 +151,7 @@ def action(args):
                 exons = [exon for exon in refgenes[transcript]['exonTracker'].exons.values()].count(True)
 
                 outfields = dict([('gene', gene['Gene']), 
-                                  ('refgene', transcript),
+                                  ('refgene', gene['RefSeq']),
                                   ('total_bases_targeted', gene['bases_covered']),
                                   ('length_of_gene',refgenes[transcript]['chromEnd'] - refgenes[transcript]['chromStart']),
                                   ('fraction_of_gene_covered',round(float(gene['bases_covered']) /
