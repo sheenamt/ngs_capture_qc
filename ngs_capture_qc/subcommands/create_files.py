@@ -10,6 +10,7 @@ import shutil
 import os
 import pandas as pd
 import numpy as np
+from natsort import natsorted
 from ngs_capture_qc.utils import chromosomes, check_probe_format
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
@@ -22,7 +23,7 @@ def build_parser(parser):
     parser.add_argument('probefile', help='The probe file from the vendor file')
     parser.add_argument('refgene_bed', help="UCSC RefGene gene data in bed format, chrm|start|stop|gene")
     parser.add_argument('bedtools', default='',help='Path to bedtools, accepts binary or singularity image')
-    parser.add_argument('--outdir', required=False, help="Output directory for summary scripts")
+    parser.add_argument('outdir', default='.', help="Output directory for summary scripts")
 
 def write_merged_bed(probes, bedtools, temp_merged_bed):
     """Given correctly formatted probes, write the merged bed file"""
@@ -34,6 +35,7 @@ def write_merged_bed(probes, bedtools, temp_merged_bed):
 
 def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     """Given merged bed file, replacing the annotation with gene names"""
+    print("running:",  temp_merged_bed, bedtools, refgene, anno_bed)
     #Next, annotate this file
     intersect_args = [x for x in bedtools.split(' ')]+['bedtools', 'intersect', '-a', temp_merged_bed, '-b', refgene, '-loj'] 
     annotate = subprocess.Popen(intersect_args, stdout=subprocess.PIPE)
@@ -42,9 +44,24 @@ def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     #Ignore all columns in merged output except the 7 we care about
     df=df.iloc[:,:7]
     df.columns=['chrom','start','stop','Rchr','Rstart','Rstop','gene']
+    #Drop duplicates based on chrm/start/stop of probes/bed, not of ucsc annotation (which is the Rchr/Rstart/Rstop)
     df.drop_duplicates(subset=['chrom','start','stop','gene'],inplace=True)
+    #Now we need to drop duplicates that have different gene names but duplicate positions
+    df=df.groupby(['chrom','start','stop'])['gene'].apply('-'.join).reset_index()
+
     df.replace(to_replace=r'^\.$', value='intergenic', regex=True, inplace=True)
+    #Sort by chromosome and start
+    #See https://stackoverflow.com/questions/29580978/naturally-sorting-pandas-dataframe
+    df.chrom=df.chrom.astype('category')
+    df.chrom.cat.reorder_categories(natsorted(set(df.chrom)), inplace=True, ordered=True)
+    df.start = df.start.astype('category')
+    df.start.cat.reorder_categories(natsorted(set(df.start)), inplace=True, ordered=True)
+    df.sort_values('chrom', inplace=True)
     df.to_csv(anno_bed, columns=['chrom','start','stop','gene'],header=None,index=False, sep='\t')
+
+def wrtie_antitarget_bed():
+    """Given bed file, create bed file of regions not expected to be covered"""
+    pass
 
 def create_bed(probes,output_basename,refgene_bed, bedtools):
     """Inital step for new assay, validate probe file and write clean, annotated bed file"""
@@ -60,9 +77,9 @@ def create_bed(probes,output_basename,refgene_bed, bedtools):
     anno_bed=output_basename+'.anno.bed'
     write_annotated_bed(temp_merged_bed, bedtools, refgene_bed, anno_bed)
 
-    #Remove temp merged bed file
-    os.remove(probes_temp)
-    os.remove(temp_merged_bed)
+    # #Remove temp merged bed file
+    # os.remove(probes_temp)
+    # os.remove(temp_merged_bed)
 
 def create_picard_bed(probes, output_basename):
     """Use doc/PicardHeader and probe file to create a file 
