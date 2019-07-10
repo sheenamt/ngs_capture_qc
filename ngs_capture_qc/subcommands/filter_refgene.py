@@ -20,23 +20,30 @@ log = logging.getLogger(__name__)
 
 
 def build_parser(parser):
-    parser.add_argument('refgene_bed',
-                        help='RefSeq table broswer file, in bed format. Use refgene_to_bed to create')
+    parser.add_argument('refgene',
+                        help='RefSeq table broswer file')
     parser.add_argument('genes', 
                         help='File defining preferred transcripts')
     parser.add_argument('outfile',
                         help='output file')
 
 refgene_fields = """
+bin
+refgene
 chrom
+strand
 txStart
 txEnd
-name
-refgene
+cdsStart
+cdsEnd
 exonCount
-exonSizes
 exonStarts
 exonEnds
+score
+name
+cdsStartStat
+cdsEndStat
+exonFrames
 """.split()
 
 def read_refgene(file):
@@ -83,9 +90,9 @@ def action(args):
     transcripts['RefSeq']=transcripts['RefSeq'].apply(lambda x: x.split('.')[0])
 
     # read and filter the refgene file
-    refgenes = read_refgene(open(args.refgene_bed, 'r'))
+    refgenes = read_refgene(open(args.refgene, 'r'))
     fieldnames = refgenes.fieldnames
-    
+
     refgenes = [r for r in refgenes
                 if r['chrom'] in chromosomes and r['name'] in transcripts['Gene'].values]
 
@@ -98,7 +105,7 @@ def action(args):
         grp = list(grp)
         preferred = transcripts.loc[transcripts['Gene']==gene, 'RefSeq'].item()
         if preferred:
-            keep = [r for r in grp if r['refgene'] in preferred]
+            keep = [r for r in grp if r['refgene'].split('.')[0] in preferred]
             if not keep:
                 log.error('Error: %s has a preferred transcript of %s but only %s was found' %
                           (gene, preferred, ','.join(r['refgene'] for r in grp)))
@@ -113,6 +120,9 @@ def action(args):
         filtered_output.append(keep[0])
 
     # all transcripts are found among preferred transcripts
+    # for k in filtered_output:
+    #     print(k)
+    #     print(transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])])
     assert [transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])] for k in filtered_output]
 
     # Check for overlapping genes and exit with an error if any are
