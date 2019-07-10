@@ -37,7 +37,7 @@ def action(args):
     """.split()
     #Skip the header lines, read in only the columns we need because some unnecessary columns can be millions of characters long
     reader = csv.DictReader(filter(lambda row: row[0]!='#',open(args.refgene,'r')), delimiter='\t', fieldnames=refgene_fields)
-    out=[x for x in reader if x['chrom'] in chromosomes and 'NM_' in x['name']]
+    out=[x for x in reader if x['chrom'] in chromosomes]
     sorted_out = natsorted(out, key=itemgetter('chrom'))
     headers = ['chrom','txStart','txEnd','name2','name','strand','exonCount','exonStarts','exonEnds']
     writer = csv.DictWriter(open(args.outfile,'w'), extrasaction='ignore',fieldnames=headers, delimiter='\t',lineterminator='\n')
