@@ -35,13 +35,15 @@ class exonTracker:
     def __init__(self, exonStarts, exonEnds):
         self.exons = dict(((start,end),False) for start,end in zip(exonStarts,exonEnds))
         assert(len(exonStarts) == len(exonEnds))
+
     def insert(self, start, end):
         #Probes are merged, and therefore may cover multiple exons
         #probe: 1-100, exons: 1-20, 30-49, 59-99
         for exonStart, exonEnd in self.exons.keys():
-            if (int(start) >= int(exonStart) and int(end) < int(exonEnd)) or (int(end) > int(exonStart) and int(end) <= int(exonEnd)) or (int(exonStart) > int(start) and int(exonEnd) < int(end)):
+            #start/end within exon
+            if ((int(exonStart) <= int(start) < int(exonEnd)) and (int(exonStart) <= int(end) < int(exonEnd))) or ((int(exonStart) <= int(start) < int(exonEnd)) and (int(end) > int(exonEnd))) or ((int(start) <= int(exonStart) < int(end)) and (int(start) < int(exonEnd) < int(end))) or ((int(exonStart) < int(end) <= int(exonEnd)) and  (int(start) <= int(exonStart))):
                 self.exons[(exonStart,exonEnd)] = True
-                
+
 def calculate_total_covered(probes):
     '''calculate the total regions covered by using the merged probes file'''
     total_cov=0
@@ -51,7 +53,6 @@ def calculate_total_covered(probes):
             chrm,start,stop=ls[0:3]
             line_sum=int(stop)-int(start)
             total_cov += line_sum
-
     return total_cov
 
 
@@ -79,7 +80,7 @@ def action(args):
         # We asume that refgene only has ONE line per refgene
         exonStarts=list(filter(None,[x for x in line['exonStarts'].split(',')]))
         exonEnds=list(filter(None,[x for x in line['exonEnds'].split(',')]))
-        if refgene not in refgenes and 'NM_' in refgene:
+        if refgene not in refgenes and ('NM_' in refgene or 'NR_' in refgene):
             refgenes[refgene] = dict( [('name', name),
                                        ('refgene', refgene),
                                        ('chrom', line['chrom'].strip('chr')),
@@ -87,7 +88,6 @@ def action(args):
                                        ('chromEnd', int(line['chromEnd'])),
                                        ('exonTracker', exonTracker(exonStarts, exonEnds)),
                                        ('bases_covered', 0)])
-
             #Sanity checks
             assert(len(exonStarts) == len(exonEnds))
             for start,end in zip(exonStarts, exonEnds):
@@ -97,6 +97,7 @@ def action(args):
         else:
             pass
             #sys.stderr.write("RefSeq {} is listed twice in refGene!".format(line['refgene']))
+
     # 2) Using bedtools, calculate how many bases are actually covered for each gene
     intersection=os.path.join(out,'intersect_probes_refgene.txt')
     write_intersect=open(intersection, 'w')
@@ -110,7 +111,7 @@ def action(args):
     for line in open(intersection):
         ls = line.strip('\n').split('\t')
         #Find the NM_ column, can be different depending on the input file
-        indices = [i for i, s in enumerate(ls) if 'NM_' in s.upper()]
+        indices = [i for i, s in enumerate(ls) if 'NM_' in s.upper() or 'NR_' in s.upper()]
         if len(indices)>1:
             sys.stderr.write("Refseq {} is listed twice in refGene!".format(line['refgene']))
         elif len(indices)<1:
@@ -119,7 +120,6 @@ def action(args):
         overlap = int(ls[-1]) # The '-wo' switch from intersect_args put the amount of overlap here
         refgenes[refgene]['bases_covered'] += overlap
         refgenes[refgene]['exonTracker'].insert(int(ls[1]), int(ls[2]))
-
 
     # 4) Print per-refgene summary
     per_refgene_header = ['gene','refgene','total_bases_targeted','length_of_gene','fraction_of_gene_covered','exons_with_any_coverage','total_exons_in_gene']
@@ -149,7 +149,7 @@ def action(args):
                 if gene['bases_covered'] > 0:
                     gene_count +=1
                 exons = [exon for exon in refgenes[transcript]['exonTracker'].exons.values()].count(True)
-
+                    
                 outfields = dict([('gene', gene['Gene']), 
                                   ('refgene', gene['RefSeq']),
                                   ('total_bases_targeted', gene['bases_covered']),
