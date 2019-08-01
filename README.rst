@@ -20,7 +20,7 @@ installation
 Clone the project from the git repository::
 
     cd ~/src
-    git clone git@github.com:sheenams/ngs_capture_qc.git
+    git clone git@gitlab.labmed.uw.edu:sheenams/ngs_capture_qc.git
     cd ngs_capture_qc
 
 
@@ -50,7 +50,6 @@ create_files and summarize_assay expect refgene in bed format.
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
-
 
 Commands are constructed as follows. Every command starts with the
 name of the script, followed by an "action" followed by a series of
@@ -85,6 +84,7 @@ script and individual actions using the ``-h`` or ``--help`` options::
                         verbose, -vv more so)
     -q, --quiet           Suppress output
 
+<<<<<<< HEAD
 versions
 ========
 
@@ -93,6 +93,8 @@ We use abbrevited git sha hashes to identify the software version::
     % ./capqc -V
     0309.004ecac
 
+=======
+>>>>>>> 40943dd3e0b97afbd06aca3e3a6dff6a63777b2c
 unit tests
 ==========
 
