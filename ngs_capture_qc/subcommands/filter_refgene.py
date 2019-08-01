@@ -18,10 +18,9 @@ from ngs_capture_qc.utils import chromosomes
 
 log = logging.getLogger(__name__)
 
-
 def build_parser(parser):
     parser.add_argument('refgene',
-                        help='RefSeq table broswer file')
+                        help='RefSeq table broswer file, NOT BED FORMAT')
     parser.add_argument('genes', 
                         help='File defining preferred transcripts')
     parser.add_argument('outfile',
@@ -119,7 +118,7 @@ def action(args):
 
         filtered_output.append(keep[0])
 
-    # all transcripts are found among preferred transcripts
+#    all transcripts are found among preferred transcripts
     # for k in filtered_output:
     #     print(k)
     #     print(transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])])
