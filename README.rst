@@ -22,8 +22,10 @@ Clone the project from the git repository::
     cd ~/src
     git clone git@gitlab.labmed.uw.edu:sheenams/ngs_capture_qc.git
     cd ngs_capture_qc
-
-
+    python -m venv capqc-env
+    source capqc-env/bin/activate
+    pip install -r requirements.txt
+    
 execution
 =========
 
@@ -46,7 +48,7 @@ create_files and summarize_assay expect refgene in bed format.
    - the refgene file input for this is NOT bed format
    - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
 
-4. ./capqc capqc create_files [-h] [--outdir OUTDIR] probefile refgene_bed bedtools
+4. ./capqc capqc create_files [-h] probefile refgene_bed bedtools outdir
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
