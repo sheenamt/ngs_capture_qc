@@ -217,7 +217,7 @@ def action(args):
 
     data=open(non_intersection)
     if data:
-        overall.write("The following probes did not intersect with transcription region of any UCSC gene:\n")
+        overall.write("The following probes did not intersect with transcription region of any gene listed in the preferred transcripts provided.:\n")
         for line in data:
             overall.write(line)
 
