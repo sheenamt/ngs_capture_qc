@@ -102,6 +102,7 @@ def check_probe_format(probes):
     probes=probes.iloc[:,:5]
     probes.columns=['chrom','start','stop','annotation','strand']
     #Drop chr if present
+    probes['chrom'] = probes['chrom'].astype(str)
     probes['chrom']=probes['chrom'].str.replace('chr','')
     return probes
 
