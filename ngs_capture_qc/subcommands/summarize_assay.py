@@ -121,10 +121,15 @@ def action(args):
         refgenes[refgene]['bases_covered'] += overlap
         refgenes[refgene]['exonTracker'].insert(int(ls[1]), int(ls[2]))
 
-    # 4) Print per-refgene summary
-    per_refgene_header = ['gene','refgene','total_bases_targeted','length_of_gene','fraction_of_gene_covered','exons_with_any_coverage','total_exons_in_gene']
-    per_refgene_writer = csv.DictWriter(open(os.path.join(out, "per_refgene_summary.txt"), 'w'), fieldnames=per_refgene_header,  delimiter='\t', extrasaction='ignore')
-    per_refgene_writer.writeheader()
+    # 4) Print per-refgene summary, one file for preferred genes another file for genes covered but not listed in preferred
+    refgene_header = ['gene','refgene','total_bases_targeted','length_of_gene','fraction_of_gene_covered','exons_with_any_coverage','total_exons_in_gene']
+
+    pref_refgene_writer = csv.DictWriter(open(os.path.join(out, "preferred_refgene_summary.txt"), 'w'), fieldnames=refgene_header,  delimiter='\t', extrasaction='ignore')
+    pref_refgene_writer.writeheader()
+
+    other_refgene_writer = csv.DictWriter(open(os.path.join(out, "other_refgene_summary.txt"), 'w'), fieldnames=refgene_header,  delimiter='\t', extrasaction='ignore')
+    other_refgene_writer.writeheader()
+
     # While we're looping through refgenes, count the total bases,and refgenes covered
     total_coding_bases = 0
     gene_count = 0
@@ -193,8 +198,11 @@ def action(args):
                 genes[data['name']] = outfields
 
     for gene,data in sorted(genes.items()):
-        per_refgene_writer.writerow(data)
-
+        if '.' in data['refgene']:
+            pref_refgene_writer.writerow(data)
+        else:
+            other_refgene_writer.writerow(data)
+        
 
 
     #5)  Calculate total regions covered 
