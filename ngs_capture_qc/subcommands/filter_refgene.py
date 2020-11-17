@@ -118,9 +118,9 @@ def action(args):
         filtered_output.append(keep[0])
 
 #    all transcripts are found among preferred transcripts
-    # for k in filtered_output:
-    #     print(k)
-    #     print(transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])])
+#    for k in filtered_output:
+#        print(k)
+#        print(transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])])
     assert [transcripts[transcripts['RefSeq'].astype(str).str.contains(k['refgene'])] for k in filtered_output]
 
     # Check for overlapping genes and exit with an error if any are
