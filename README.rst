@@ -22,7 +22,7 @@ Clone the project from the git repository::
     cd ~/src
     git clone git@gitlab.labmed.uw.edu:sheenams/ngs_capture_qc.git
     cd ngs_capture_qc
-    python -m venv capqc-env
+    python3 -m venv capqc-env
     source capqc-env/bin/activate
     pip install -r requirements.txt
     
