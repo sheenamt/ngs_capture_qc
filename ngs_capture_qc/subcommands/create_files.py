@@ -6,12 +6,10 @@ Picard and merged,annotated BED file
 import subprocess
 import sys
 import logging
-import shutil
 import os
 import pandas as pd
-import numpy as np
 from natsort import natsorted
-from ngs_capture_qc.utils import chromosomes, check_probe_format
+from ngs_capture_qc.utils import check_probe_format
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
@@ -30,7 +28,7 @@ def write_merged_bed(probes, bedtools, temp_merged_bed):
     #First, create merged bed file
     write_probes=open(temp_merged_bed, 'w')
     merge_probes_args = [x for x in bedtools.split(' ')]+['bedtools', 'merge', '-i', probes]
-    merge_probes = subprocess.call(merge_probes_args, stdout=write_probes) 
+    subprocess.call(merge_probes_args, stdout=write_probes) 
     write_probes.close()
 
 def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
@@ -47,7 +45,8 @@ def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     #Drop duplicates based on chrm/start/stop of probes/bed, not of ucsc annotation (which is the Rchr/Rstart/Rstop)
     df.drop_duplicates(subset=['chrom','start','stop','gene'],inplace=True)
     #Now we need to drop duplicates that have different gene names but duplicate positions
-    df=df.groupby(['chrom','start','stop'])['gene'].apply('-'.join).reset_index()
+#    df=df.groupby(['chrom','start','stop'])['gene'].apply('-'.join).reset_index()
+    df=df.groupby(['chrom','start','stop']).gene.unique().apply(lambda x: ';'.join(x)).reset_index()
 
     df.replace(to_replace=r'^\.$', value='intergenic', regex=True, inplace=True)
     #Sort by chromosome and start
