@@ -96,6 +96,7 @@ class TestCreateFiles(TestBase):
         create_files.write_merged_bed(self.probes_temp, self.bedtools, testing_output)
         self.assertTrue(filecmp.cmp(expected_output, testing_output))
 
+        
     def testWriteAnnotatedBed(self):
         #Write merged, annotated bed file
         expected_output=os.path.join(testfiles,'expected-ANNO.bed')
@@ -104,11 +105,11 @@ class TestCreateFiles(TestBase):
         create_files.write_annotated_bed(input_bed, self.bedtools, self.refgene_bed, anno_bed)
         self.assertTrue(filecmp.cmp(expected_output, anno_bed))
 
+        
     def testCreateFiles(self):
         #Test running of whole script
-        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "create_files", self.probe_file,  self.refgene_bed,self.bedtools_image, "--outdir", self.outdir]
+        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/capqc", "create_files", self.probe_file,  self.refgene_bed,self.bedtools_image, self.outdir]
         subprocess.call(cmd)
-        
         expected_picard=os.path.join(testfiles,'expected.Picard.bed')
         expected_bed=os.path.join(testfiles,'expected-ANNO.bed')
         testing_picard=os.path.join(self.outdir,'test.Picard.bed')
