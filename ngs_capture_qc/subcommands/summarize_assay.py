@@ -9,11 +9,7 @@ import subprocess
 import csv
 import os
 import logging 
-import pandas as pd
-import numpy as np
 
-from collections import defaultdict
-from ngs_capture_qc.utils import chromosomes
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
@@ -68,7 +64,6 @@ def action(args):
     genes = {}
 
     refgene_header = ['chrom','chromStart','chromEnd','name', 'refgene','strand','exonCount','exonStarts','exonEnds'] 
-    probes_header = ['chrom', 'chromStart', 'chromEnd']
     genes_header = ['Gene', 'RefSeq']
     
     # 1) Read refGene.txt into the refgenes dictionary
@@ -102,7 +97,7 @@ def action(args):
     intersection=os.path.join(out,'intersect_probes_refgene.txt')
     write_intersect=open(intersection, 'w')
     intersect_args = [x for x in bedtools.split(' ')]+['bedtools','intersect', '-wo' ,'-a', args.bed, '-b', args.refgene_bed]
-    intersect = subprocess.call(intersect_args, stdout=write_intersect)
+    subprocess.call(intersect_args, stdout=write_intersect)
     write_intersect.close()
 
     # Parse that output, collecting the number of covered bases per-gene, and annotate refgenes dictionary
@@ -210,7 +205,7 @@ def action(args):
     non_intersection=os.path.join(out,'non_intersect_probes_refgene.txt')
     write_non_intersect=open(non_intersection, 'w')
     non_intersect_args = [x for x in bedtools.split(' ')]+['bedtools','intersect', '-v' ,'-a', args.bed, '-b', args.refgene_bed]
-    non_intersect = subprocess.call(non_intersect_args, stdout=write_non_intersect)
+    subprocess.call(non_intersect_args, stdout=write_non_intersect)
     write_non_intersect.close()
 
     # 6) Print overall summary
