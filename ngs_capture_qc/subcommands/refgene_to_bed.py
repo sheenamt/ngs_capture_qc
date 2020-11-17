@@ -2,12 +2,10 @@
 Convert UCSC refgene.txt files to BED format, for use in summarize_assay script
 """
  
-import os
 import sys 
 import csv
 from operator import itemgetter
 
-import pandas
 from natsort import natsorted
 from ngs_capture_qc.utils import chromosomes
  
