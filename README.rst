@@ -42,13 +42,19 @@ create_files and summarize_assay expect refgene in bed format.
 
 2. ./capqc summarize_assay [-h] [--outdir OUTDIR] bed genes refgene_bed bedtools
     - overall_summary (unique bases targeted, coding bases targeted, refgenes with at least 1 base targeted, probes outside of coding)
-    - per refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+    - preferred refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
+    - other refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
 
-3. ./capqc filter_refgene [-h] refgene genes outfile
+3. ./capqc xlsxmaker [-h] -o OUTFILE infiles [infiles ...]
+   - per refgene summary
+   - other genes that are covered
+   - overall summary
+     
+4. ./capqc filter_refgene [-h] refgene genes outfile
    - the refgene file input for this is NOT bed format
    - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
 
-4. ./capqc capqc create_files [-h] probefile refgene_bed bedtools outdir
+5. ./capqc capqc create_files [-h] probefile refgene_bed bedtools outdir
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
@@ -76,6 +82,7 @@ script and individual actions using the ``-h`` or ``--help`` options::
                         limiting to
     refgene_to_bed      Convert UCSC refgene.txt files to BED format, for use
                         in summarize_assay script
+    xlsxmaker           Create xlsx workbook from all output files
     summarize_assay     Given probe reference file, list of preferred
                         transcripts and refgene.bed,
 
@@ -86,7 +93,6 @@ script and individual actions using the ``-h`` or ``--help`` options::
                         verbose, -vv more so)
     -q, --quiet           Suppress output
 
-<<<<<<< HEAD
 versions
 ========
 
@@ -95,8 +101,6 @@ We use abbrevited git sha hashes to identify the software version::
     % ./capqc -V
     0309.004ecac
 
-=======
->>>>>>> 40943dd3e0b97afbd06aca3e3a6dff6a63777b2c
 unit tests
 ==========
 
