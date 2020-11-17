@@ -111,7 +111,9 @@ class TestSummarizeAssay(unittest.TestCase): #TestBase):
         
         #files made in this include "overall_summary.txt", "per_refgene_summary.txt", "merged_probes.bed"
         expected_overall=os.path.join(testfiles, "expected-overall_summary.txt")
-        expected_per_refgene=os.path.join(testfiles, "expected-per_refgene_summary.txt")
+        expected_per_refgene=os.path.join(testfiles, "expected-pref_refgene_summary.txt")
+        expected_per_refgene=os.path.join(testfiles, "expected-other_refgene_summary.txt")
         self.assertTrue(filecmp.cmp(expected_overall, os.path.join(self.outdir, "overall_summary.txt")))
-        self.assertTrue(filecmp.cmp(expected_per_refgene, os.path.join(self.outdir, "per_refgene_summary.txt")))
+        self.assertTrue(filecmp.cmp(expected_pref_refgene, os.path.join(self.outdir, "preferred_refgene_summary.txt")))
+        self.assertTrue(filecmp.cmp(expected_other_refgene, os.path.join(self.outdir, "other_refgene_summary.txt")))
 

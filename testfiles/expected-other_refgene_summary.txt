@@ -1,0 +1,4 @@
+gene	refgene	total_bases_targeted	length_of_gene	fraction_of_gene_covered	exons_with_any_coverage	total_exons_in_gene
+FAKE	NM_012221432423432	RefSeq not found	NA	NA	NA	NA
+GPR146	NM_138445	0	3995	0.0	0	2
+MEGF6	NM_001409	544	123554	0.004	3	37

@@ -1,0 +1,3 @@
+gene	refgene	total_bases_targeted	length_of_gene	fraction_of_gene_covered	exons_with_any_coverage	total_exons_in_gene
+FOXA1	NM_004496.3	360	5569	0.065	2	2
+RPL10	NM_006013.3	480	4275	0.112	2	7

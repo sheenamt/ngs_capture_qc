@@ -1,5 +1,5 @@
 1504 unique bases were targeted
 1384 unique bases within gene boundaries were targeted
 3 unique refgenes had at least one base targeted
-The following probes did not intersect with transcription region of any UCSC gene:
+The following probes did not intersect with transcription region of any gene listed in the preferred transcripts provided.:
 2	47617462	47617582	intergenic
