@@ -7,7 +7,6 @@ usage:
 
 """
 import csv
-import re
 import os
 
 from xlsxwriter import Workbook
