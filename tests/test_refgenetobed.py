@@ -30,6 +30,6 @@ class TestRefGeneToBed(TestBase):
         refgene=os.path.join(config.datadir, 'test.refGene')
         expected_output=os.path.join(config.datadir, 'expected.refGene.bed')
         test_output=os.path.join(self.outdir, 'test-output.refgene.bed')
-        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "refgene_to_bed", refgene, test_output]
+        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/capqc", "refgene_to_bed", refgene, test_output]
         subprocess.call(cmd)
         self.assertTrue(filecmp.cmp(expected_output, test_output))
