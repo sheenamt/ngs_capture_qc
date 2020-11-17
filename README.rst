@@ -45,16 +45,20 @@ create_files and summarize_assay expect refgene in bed format.
     - preferred refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
     - other refgene summary (total_bases_targeted,length_of_gene,fraction_of_gene_covered,exons_with_coverage)
 
-3. ./capqc xlsxmaker [-h] -o OUTFILE infiles [infiles ...]
-   - per refgene summary
-   - other genes that are covered
-   - overall summary
-     
-4. ./capqc filter_refgene [-h] refgene genes outfile
+3. ./capqc filter_refgene [-h] refgene genes outfile
    - the refgene file input for this is NOT bed format
    - this will validated preferred transcripts and create the filtered refgene file for use in CNV calling
 
-5. ./capqc capqc create_files [-h] probefile refgene_bed bedtools outdir
+4. ./capqc parse_refgene_positions [-h] refgene outfile
+   - parse the filtered refgene file (NOT BED FORMAT) and report start/stop position for each gene
+
+5. ./capqc xlsxmaker [-h] -o OUTFILE infiles [infiles ...]
+   - per refgene summary
+   - other genes that are covered
+   - overall summary
+   - refgene position information
+
+6. ./capqc capqc create_files [-h] probefile refgene_bed bedtools outdir
    - creates the following files:
      - clean bed (probes merged, deduplicated and annotated)
      - picard bed (probes in format required by Picard)
@@ -85,7 +89,10 @@ script and individual actions using the ``-h`` or ``--help`` options::
     xlsxmaker           Create xlsx workbook from all output files
     summarize_assay     Given probe reference file, list of preferred
                         transcripts and refgene.bed,
-
+    parse_refgene_positions
+                        Parse the filtered refgene file and report chrm:start-
+                        stop for each gene
+			
     optional arguments:
     -h, --help            show this help message and exit
     -V, --version         Print the version number and exit
