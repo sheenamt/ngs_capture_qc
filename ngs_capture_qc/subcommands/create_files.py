@@ -33,7 +33,6 @@ def write_merged_bed(probes, bedtools, temp_merged_bed):
 
 def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     """Given merged bed file, replacing the annotation with gene names"""
-    print("running:",  temp_merged_bed, bedtools, refgene, anno_bed)
     #Next, annotate this file
     intersect_args = [x for x in bedtools.split(' ')]+['bedtools', 'intersect', '-a', temp_merged_bed, '-b', refgene, '-loj'] 
     annotate = subprocess.Popen(intersect_args, stdout=subprocess.PIPE)
@@ -57,10 +56,6 @@ def write_annotated_bed(temp_merged_bed, bedtools, refgene, anno_bed):
     df.start.cat.reorder_categories(natsorted(set(df.start)), inplace=True, ordered=True)
     df.sort_values('chrom', inplace=True)
     df.to_csv(anno_bed, columns=['chrom','start','stop','gene'],header=None,index=False, sep='\t')
-
-def wrtie_antitarget_bed():
-    """Given bed file, create bed file of regions not expected to be covered"""
-    pass
 
 def create_bed(probes,output_basename,refgene_bed, bedtools):
     """Inital step for new assay, validate probe file and write clean, annotated bed file"""
