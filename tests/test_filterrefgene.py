@@ -24,12 +24,12 @@ class TestFilterRefGene(TestBase):
 
     def testReadRefGene(self):
         """Test the mapping of field headers to file"""
-        refgene=open(os.path.join(config.datadir,'test.refGene.bed'),'r')
+        refgene=open(os.path.join(config.datadir,'test.refGene'),'r')
         data=filter_refgene.read_refgene(refgene)
-        test_data=[x for x in data if x['name']=='FOXA1'][0]
-        expected_data=dict([('chrom', '14'), ('txStart', '38058756'), ('txEnd', '38064325'), ('name', 'FOXA1'), ('refgene', 'NM_004496'), ('exonCount', '2'), ('exonSizes', '3160,220'), ('exonStarts', '38058756,38064105'), ('exonEnds', '38061916,38064325')])
+        test_data=[x for x in data if x['name']=='FOXA1']
+        expected_data=dict([('bin', '875'), ('refgene', 'NM_004496'), ('chrom', '14'), ('strand', '-'), ('txStart', '38058756'), ('txEnd', '38064325'), ('cdsStart', '38060569'), ('cdsEnd', '38064177'), ('exonCount', '2'), ('exonStarts', '38058756,38064105,'), ('exonEnds', '38061916,38064325,'), ('score', '0'), ('name', 'FOXA1'), ('cdsStartStat', 'cmpl'), ('cdsEndStat', 'cmpl'), ('exonFrames', '0,0,')])
         refgene.close()
-        self.assertDictEqual(test_data, expected_data)
+        self.assertDictEqual(dict(test_data[0]), expected_data)
         
     def testCheckOverlapping(self):
         feature1=[('ARID1A', 27022521, 27108601), ('ANGPTL1', 178818669, 178840215), ('ABL2', 179068461, 179112224), ('AKT3', 243663020, 244006886)]
@@ -41,11 +41,11 @@ class TestFilterRefGene(TestBase):
         self.assertRaises(ValueError, filter_refgene.check_overlapping, feature2)
 
     def testFilterRefGene(self):
-        refgene=os.path.join(config.datadir, 'test.refGene.bed')
+        refgene=os.path.join(config.datadir, 'test.refGene')
         genes=os.path.join(config.datadir, 'test.genes_for_filter')
         test_output=os.path.join(self.outdir, 'test-output-filtered.refgene')
 
         filtered_output=os.path.join(config.datadir, 'expected-filtered.refGene')
-        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/cap_qc.py", "filter_refgene", refgene, genes, test_output]        
+        cmd=["/mnt/disk10/users/sheenams/ngs_capture_qc/capqc", "filter_refgene", refgene, genes, test_output]        
         subprocess.call(cmd)
         self.assertTrue(filecmp.cmp(filtered_output, test_output))
