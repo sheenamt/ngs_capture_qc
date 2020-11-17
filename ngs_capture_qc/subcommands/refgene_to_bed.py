@@ -38,5 +38,5 @@ def action(args):
     out=[x for x in reader if x['chrom'] in chromosomes]
     sorted_out = natsorted(out, key=itemgetter('chrom'))
     headers = ['chrom','txStart','txEnd','name2','name','strand','exonCount','exonStarts','exonEnds']
-    writer = csv.DictWriter(open(args.outfile,'w'), extrasaction='ignore',fieldnames=headers, delimiter='\t',lineterminator='\n')
+    writer = csv.DictWriter(open(args.outfile,'w'), extrasaction='ignore',fieldnames=headers, delimiter='\t')
     writer.writerows(sorted_out)
