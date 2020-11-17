@@ -4,16 +4,15 @@ preferred transcripts.
 Overlapping genes will result in an error.
 """
 
-import os
 import sys
 import csv
 import pprint
-from itertools import chain, groupby
+from itertools import groupby
 from operator import itemgetter
-from collections import namedtuple,defaultdict
+from collections import namedtuple
 import logging
 import pandas as pd
-from ngs_capture_qc.utils import Opener
+
 from ngs_capture_qc.utils import chromosomes
 
 log = logging.getLogger(__name__)
@@ -86,7 +85,7 @@ def action(args):
     #Parse preferred transcripts, write coverage info
     transcripts=pd.read_csv(open(args.genes, 'r'), delimiter='\t')
     transcripts.columns=['Gene','RefSeq']
-    transcripts['RefSeq']=transcripts['RefSeq'].apply(lambda x: x.split('.')[0])
+    transcripts['RefSeq']=transcripts['RefSeq'].apply(lambda x: str(x).split('.')[0])
 
     # read and filter the refgene file
     refgenes = read_refgene(open(args.refgene, 'r'))
